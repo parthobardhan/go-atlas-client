@@ -1,0 +1,50 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/Sectorbob/mlab-ns2/gae/ns/digest"
+	"github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+)
+
+func newClient(publicKey, privateKey string) (*mongodbatlas.Client, error) {
+
+	//Setup a transport to handle digest
+	transport := digest.NewTransport(publicKey, privateKey)
+
+	//Initialize the client
+	client, err := transport.Client()
+	if err != nil {
+		return nil, err
+	}
+
+	//Initialize the MongoDB Atlas API Client.
+	return mongodbatlas.NewClient(client), nil
+}
+
+func main() {
+#	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
+#	privateKey := os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+#	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
+	if publicKey == "" || privateKey == "" || projectID == "" {
+		log.Fatalln("MONGODB_ATLAS_PROJECT_ID, MONGODB_ATLAS_PUBLIC_KEY and MONGODB_ATLAS_PRIVATE_KEY must be set to run this example")
+	}
+
+	client, err := newClient(publicKey, privateKey)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	clusters, _, err := client.Clusters.List(context.Background(), projectID, nil)
+
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	fmt.Printf("%+v \n", clusters)
+
+}
